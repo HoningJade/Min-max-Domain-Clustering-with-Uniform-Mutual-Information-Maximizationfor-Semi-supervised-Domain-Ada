@@ -1,3 +1,5 @@
+Pytorch version:
+
 Backbone: Resnet34
 
 Dataset: DomainNet

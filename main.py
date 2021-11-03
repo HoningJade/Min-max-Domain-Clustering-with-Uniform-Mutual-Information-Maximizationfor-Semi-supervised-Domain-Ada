@@ -62,7 +62,7 @@ print('Dataset %s Source %s Target %s Labeled num perclass %s Network %s' %
       (args.dataset, args.source, args.target, args.num, args.net))
 source_loader, target_loader, target_loader_unl, target_loader_val, \
     target_loader_test, class_list = return_dataset(args)
-use_gpu = torch.cuda.is_available()
+print(torch.cuda.is_available())
 record_dir = 'record/%s/%s' % (args.dataset, args.method)
 if not os.path.exists(record_dir):
     os.makedirs(record_dir)
