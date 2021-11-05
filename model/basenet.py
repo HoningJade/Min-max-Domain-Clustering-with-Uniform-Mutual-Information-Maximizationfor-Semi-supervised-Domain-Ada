@@ -5,8 +5,9 @@ import torch.nn as nn
 from torch.autograd import Function
 
 
-class GradReverse(Function):
+class GradReverse(nn.Module):
     def __init__(self, lambd):
+        super().__init__()
         self.lambd = lambd
 
     def forward(self, x):

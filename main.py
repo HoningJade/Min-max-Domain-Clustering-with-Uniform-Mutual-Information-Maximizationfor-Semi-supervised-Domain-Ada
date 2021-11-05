@@ -175,11 +175,11 @@ def train():
         data_t = next(data_iter_t)
         data_t_unl = next(data_iter_t_unl)
         data_s = next(data_iter_s)
-        im_data_s.data.resize_(data_s[0].size()).copy_(data_s[0])
-        gt_labels_s.data.resize_(data_s[1].size()).copy_(data_s[1])
-        im_data_t.data.resize_(data_t[0].size()).copy_(data_t[0])
-        gt_labels_t.data.resize_(data_t[1].size()).copy_(data_t[1])
-        im_data_tu.data.resize_(data_t_unl[0].size()).copy_(data_t_unl[0])
+        im_data_s.resize_(data_s[0].size()).copy_(data_s[0])
+        gt_labels_s.resize_(data_s[1].size()).copy_(data_s[1])
+        im_data_t.resize_(data_t[0].size()).copy_(data_t[0])
+        gt_labels_t.resize_(data_t[1].size()).copy_(data_t[1])
+        im_data_tu.resize_(data_t_unl[0].size()).copy_(data_t_unl[0])
         zero_grad_all()
         data = torch.cat((im_data_s, im_data_t), 0)
         target = torch.cat((gt_labels_s, gt_labels_t), 0)
@@ -271,8 +271,8 @@ def test(loader):
     confusion_matrix = torch.zeros(num_class, num_class)
     with torch.no_grad():
         for batch_idx, data_t in enumerate(loader):
-            im_data_t.data.resize_(data_t[0].size()).copy_(data_t[0])
-            gt_labels_t.data.resize_(data_t[1].size()).copy_(data_t[1])
+            im_data_t.resize_(data_t[0].size()).copy_(data_t[0])
+            gt_labels_t.resize_(data_t[1].size()).copy_(data_t[1])
             feat = G(im_data_t)
             output1 = F1(feat)
             output_all = np.r_[output_all, output1.data.cpu().numpy()]
