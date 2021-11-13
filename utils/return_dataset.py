@@ -5,6 +5,7 @@ from loaders.data_list import Imagelists_VISDA, return_classlist
 from torch.utils.data.sampler import SubsetRandomSampler, WeightedRandomSampler
 from collections import Counter
 import numpy as np
+from tqdm import tqdm
 
 
 class ResizeImage():
@@ -47,7 +48,7 @@ def return_pred(G, F1, target_loader_unl_random):
 
     preds = []
     with torch.no_grad():
-        for img, _ in target_loader_unl_random:
+        for img, _ in tqdm(target_loader_unl_random):
             img = img.cuda()
             out = F1(G(img))
             preds.append(torch.argmax(out, dim=1).squeeze())
