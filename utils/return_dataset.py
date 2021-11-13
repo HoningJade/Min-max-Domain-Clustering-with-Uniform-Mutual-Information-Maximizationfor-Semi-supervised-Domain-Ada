@@ -2,6 +2,9 @@ import os
 import torch
 from torchvision import transforms
 from loaders.data_list import Imagelists_VISDA, return_classlist
+from torch.utils.data.sampler import WeightedRandomSampler
+from collections import Counter
+import numpy as np
 
 
 class ResizeImage():
@@ -14,6 +17,27 @@ class ResizeImage():
     def __call__(self, img):
         th, tw = self.size
         return img.resize((th, tw))
+
+
+def return_uniform_sampler(label_list, num_class=125):
+    """
+        Return a inverse frequency weighted(therefore uniform)
+        data sampler based on given datalist
+    """
+    count_dict = Counter(label_list)
+    count_dict_full = {k:0 for k in range(num_class)}
+    for k, v in count_dict:
+        count_dict_full[k] = v
+    count_dict_sorted = {k: v for k, v in sorted(count_dict_full.items(), key=lambda item: item[0])}
+    class_sample_count = np.array(list(count_dict_sorted.values()))
+    class_sample_count = class_sample_count / class_sample_count.max()
+    class_sample_count += 1e-8
+
+    weights = 1 / torch.Tensor(class_sample_count)
+    sample_weights = [weights[l] for l in label_list]
+    sample_weights = torch.DoubleTensor(np.array(sample_weights))
+    sampler = WeightedRandomSampler(sample_weights, len(sample_weights))
+    return sampler
 
 
 def return_dataset(args):
