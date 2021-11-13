@@ -41,3 +41,11 @@ def adentropy(F1, feat, lamda, eta=1.0):
     loss_adent = lamda * torch.mean(torch.sum(out_t1 *
                                               (torch.log(out_t1 + 1e-5)), 1))
     return loss_adent
+
+def JSDloss(p, q):
+    p = F.softmax(p, dim=1)
+    q = F.softmax(q, dim=1)
+
+    m = (p + q) / 2
+    jsd = (F.kl_div(p, m) + F.kl_div(q, m))
+    return jsd
