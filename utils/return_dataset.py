@@ -26,7 +26,7 @@ def return_uniform_sampler(label_list, num_class=126):
     """
     count_dict = Counter(label_list)
     count_dict_full = {k: 0 for k in range(num_class)}
-    for k, v in count_dict:
+    for k, v in count_dict.items():
         count_dict_full[k] = v
     count_dict_sorted = {k: v for k, v in sorted(
         count_dict_full.items(), key=lambda item: item[0])}
@@ -48,7 +48,7 @@ def return_pred(G, F1, target_loader_unl_random):
     preds = []
     with torch.no_grad():
         for img, _ in target_loader_unl_random:
-            img.cuda()
+            img = img.cuda()
             out = F1(G(img))
             preds.append(torch.argmax(out, dim=1).squeeze())
         preds = torch.cat(preds, dim=0)

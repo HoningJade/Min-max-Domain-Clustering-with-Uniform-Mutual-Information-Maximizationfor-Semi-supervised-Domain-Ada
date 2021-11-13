@@ -60,7 +60,7 @@ parser.add_argument('--uniform_sampling', action='store_true',
                     help='sample labeled data as if it is uniform')
 parser.add_argument('--pseudo_balance_target', action='store_true',
                     help='use pseudo label to sample the unlabeled target')
-parser.add_argument('--momentum', type=int, default=-1,
+parser.add_argument('--momentum', type=float, default=-1,
                     help='momentum for the JSD loss')
 parser.add_argument('--bs', type=int, default=24,
                     help='batchsize')

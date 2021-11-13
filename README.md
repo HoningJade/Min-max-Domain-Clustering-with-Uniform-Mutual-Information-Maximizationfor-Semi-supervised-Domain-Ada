@@ -6,9 +6,11 @@ Dataset: DomainNet
 
 Results
 
-|      |      |      |      |
-| ---- | ---- | ---- | ---- |
-|      |      |      |      |
+|   Method     |  R2S(3) |      |      |
+| :--:         |   :--:   | ---- | ---- |
+|   Baseline   |   61.9   |      |      |
+|   Uniform    |    -     |      |      |
+|   UniMoJSD   |    -     |      |      |
 
 
 
