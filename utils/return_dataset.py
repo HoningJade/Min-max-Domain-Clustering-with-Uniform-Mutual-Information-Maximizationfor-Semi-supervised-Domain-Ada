@@ -19,7 +19,7 @@ class ResizeImage():
         return img.resize((th, tw))
 
 
-def return_uniform_sampler(label_list, num_class=125):
+def return_uniform_sampler(label_list, num_class=126):
     """
         Return a inverse frequency weighted(therefore uniform)
         data sampler based on given datalist
@@ -112,17 +112,19 @@ def return_dataset(args):
         source_sampler = return_uniform_sampler(source_dataset.labels)
         target_sampler = return_uniform_sampler(target_dataset.labels)
     else:
+        # equivalent to shuffle=True
         source_sampler = SubsetRandomSampler(np.arange(len(source_dataset.imgs)))
         target_sampler = SubsetRandomSampler(np.arange(len(target_dataset.imgs)))
 
+    # sampler is contradict to shuffle, so set shuffle to False
     source_loader = torch.utils.data.DataLoader(source_dataset, batch_size=bs,
-                                                num_workers=3, shuffle=True,
+                                                num_workers=3, shuffle=False,
                                                 drop_last=True,
                                                 sampler=source_sampler)
     target_loader = \
         torch.utils.data.DataLoader(target_dataset,
                                     batch_size=min(bs, len(target_dataset)),
-                                    num_workers=3, shuffle=True, 
+                                    num_workers=3, shuffle=False, 
                                     drop_last=True,
                                     sampler=target_sampler)
     target_loader_val = \
