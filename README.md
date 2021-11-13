@@ -1,17 +1,3 @@
-Pytorch version:
-
-Backbone: Resnet34
-
-Dataset: DomainNet
-
-Results
-
-|      |      |      |      |
-| ---- | ---- | ---- | ---- |
-|      |      |      |      |
-
-
-
 # [Semi-supervised Domain Adaptation via Minimax Entropy (ICCV 2019)](https://arxiv.org/pdf/1904.06487.pdf)
 
 ![](docs/fig1.png)

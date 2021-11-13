@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="2fe1ea3f-c7e7-4e8f-a24d-e958c79c74b3" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/model/basenet.py" beforeDir="false" afterPath="$PROJECT_DIR$/model/basenet.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/loss.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/loss.py" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FlaskConsoleOptions" custom-start-script="import sys&#10;sys.path.extend([WORKING_DIR_AND_PYTHON_PATHS])&#10;from flask.cli import ScriptInfo&#10;locals().update(ScriptInfo(create_app=None).load_app().make_shell_context())&#10;print(&quot;Python %s on %s\nApp: %s [%s]\nInstance: %s&quot; % (sys.version, sys.platform, app.import_name, app.env, app.instance_path))">
+    <envs>
+      <env key="FLASK_APP" value="app" />
+    </envs>
+    <option name="myCustomStartScript" value="import sys&#10;sys.path.extend([WORKING_DIR_AND_PYTHON_PATHS])&#10;from flask.cli import ScriptInfo&#10;locals().update(ScriptInfo(create_app=None).load_app().make_shell_context())&#10;print(&quot;Python %s on %s\nApp: %s [%s]\nInstance: %s&quot; % (sys.version, sys.platform, app.import_name, app.env, app.instance_path))" />
+    <option name="myEnvs">
+      <map>
+        <entry key="FLASK_APP" value="app" />
+      </map>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="JupyterTrust" id="3b6cbaef-e990-45e0-b47e-405f36bf2d8f" />
+  <component name="ProjectId" id="20Pz3eijyxXA1xc3WDTTKOFQDNY" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="true" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="node.js.detected.package.eslint" value="true" />
+    <property name="node.js.path.for.package.eslint" value="project" />
+    <property name="node.js.selected.package.eslint" value="(autodetect)" />
+    <property name="settings.editor.selected.configurable" value="reference.idesettings.debugger.python" />
+  </component>
+  <component name="PyDebuggerOptionsProvider">
+    <option name="mySupportGeventDebugging" value="true" />
+  </component>
+  <component name="RunManager">
+    <configuration name="main" type="PythonConfigurationType" factoryName="Python" singleton="false" nameIsGenerated="true">
+      <module name="eecs542" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="sftp://ruiyuli@141.212.114.72:22/home/ruiyuli/da/bin/python3" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/main.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="2fe1ea3f-c7e7-4e8f-a24d-e958c79c74b3" name="Default Changelist" comment="" />
+      <created>1635960814655</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1635960814655</updated>
+      <workItem from="1635960816289" duration="2519000" />
+      <workItem from="1635967327081" duration="1767000" />
+      <workItem from="1636063071203" duration="5968000" />
+      <workItem from="1636822821310" duration="13748000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="101" y="59" width="1094" height="735" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1636091378031">
+      <screen x="0" y="0" width="1296" height="824" />
+    </state>
+    <state x="101" y="59" width="1094" height="735" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1296.824@0.0.1296.824" timestamp="1636091378031" />
+    <state x="377" y="123" key="FileChooserDialogImpl" timestamp="1636089957909">
+      <screen x="0" y="0" width="1296" height="824" />
+    </state>
+    <state x="377" y="123" key="FileChooserDialogImpl/0.0.1296.824@0.0.1296.824" timestamp="1636089957909" />
+    <state width="1243" height="246" key="GridCell.Tab.0.bottom" timestamp="1636094242993">
+      <screen x="0" y="0" width="1296" height="824" />
+    </state>
+    <state width="1243" height="246" key="GridCell.Tab.0.bottom/0.0.1296.824@0.0.1296.824" timestamp="1636094242993" />
+    <state width="1243" height="246" key="GridCell.Tab.0.center" timestamp="1636094242993">
+      <screen x="0" y="0" width="1296" height="824" />
+    </state>
+    <state width="1243" height="246" key="GridCell.Tab.0.center/0.0.1296.824@0.0.1296.824" timestamp="1636094242993" />
+    <state width="1243" height="246" key="GridCell.Tab.0.left" timestamp="1636094242993">
+      <screen x="0" y="0" width="1296" height="824" />
+    </state>
+    <state width="1243" height="246" key="GridCell.Tab.0.left/0.0.1296.824@0.0.1296.824" timestamp="1636094242993" />
+    <state width="1243" height="246" key="GridCell.Tab.0.right" timestamp="1636094242993">
+      <screen x="0" y="0" width="1296" height="824" />
+    </state>
+    <state width="1243" height="246" key="GridCell.Tab.0.right/0.0.1296.824@0.0.1296.824" timestamp="1636094242993" />
+    <state width="1243" height="246" key="GridCell.Tab.1.bottom" timestamp="1636094242993">
+      <screen x="0" y="0" width="1296" height="824" />
+    </state>
+    <state width="1243" height="246" key="GridCell.Tab.1.bottom/0.0.1296.824@0.0.1296.824" timestamp="1636094242993" />
+    <state width="1243" height="246" key="GridCell.Tab.1.center" timestamp="1636094242992">
+      <screen x="0" y="0" width="1296" height="824" />
+    </state>
+    <state width="1243" height="246" key="GridCell.Tab.1.center/0.0.1296.824@0.0.1296.824" timestamp="1636094242992" />
+    <state width="1243" height="246" key="GridCell.Tab.1.left" timestamp="1636094242992">
+      <screen x="0" y="0" width="1296" height="824" />
+    </state>
+    <state width="1243" height="246" key="GridCell.Tab.1.left/0.0.1296.824@0.0.1296.824" timestamp="1636094242992" />
+    <state width="1243" height="246" key="GridCell.Tab.1.right" timestamp="1636094242992">
+      <screen x="0" y="0" width="1296" height="824" />
+    </state>
+    <state width="1243" height="246" key="GridCell.Tab.1.right/0.0.1296.824@0.0.1296.824" timestamp="1636094242992" />
+    <state x="34" y="0" key="SettingsEditor" timestamp="1636091486649">
+      <screen x="0" y="0" width="1296" height="824" />
+    </state>
+    <state x="34" y="0" key="SettingsEditor/0.0.1296.824@0.0.1296.824" timestamp="1636091486649" />
+    <state x="485" y="79" key="ftp.server.browser" timestamp="1636089974029">
+      <screen x="0" y="0" width="1296" height="824" />
+    </state>
+    <state x="485" y="79" key="ftp.server.browser/0.0.1296.824@0.0.1296.824" timestamp="1636089974029" />
+  </component>
+  <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/eecs542$main.coverage" NAME="main Coverage Results" MODIFIED="1636091514912" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+  </component>
+</project>

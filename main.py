@@ -12,6 +12,7 @@ from utils.utils import weights_init
 from utils.lr_schedule import inv_lr_scheduler
 from utils.return_dataset import return_dataset
 from utils.loss import entropy, adentropy
+import torch.nn.functional as F
 # Training settings
 parser = argparse.ArgumentParser(description='SSDA Classification')
 parser.add_argument('--steps', type=int, default=50000, metavar='N',
@@ -56,13 +57,13 @@ parser.add_argument('--patience', type=int, default=5, metavar='S',
                          'before terminating. (default: 5 (5000 iterations))')
 parser.add_argument('--early', action='store_false', default=True,
                     help='early stopping on validation or not')
-
+parser.add_argument('--tau', type=float, default=0.8, help='confidence threshold')
 args = parser.parse_args()
 print('Dataset %s Source %s Target %s Labeled num perclass %s Network %s' %
       (args.dataset, args.source, args.target, args.num, args.net))
 source_loader, target_loader, target_loader_unl, target_loader_val, \
     target_loader_test, class_list = return_dataset(args)
-print(torch.cuda.is_available())
+use_gpu = torch.cuda.is_available()
 record_dir = 'record/%s/%s' % (args.dataset, args.method)
 if not os.path.exists(record_dir):
     os.makedirs(record_dir)
@@ -175,11 +176,11 @@ def train():
         data_t = next(data_iter_t)
         data_t_unl = next(data_iter_t_unl)
         data_s = next(data_iter_s)
-        im_data_s.resize_(data_s[0].size()).copy_(data_s[0])
-        gt_labels_s.resize_(data_s[1].size()).copy_(data_s[1])
-        im_data_t.resize_(data_t[0].size()).copy_(data_t[0])
-        gt_labels_t.resize_(data_t[1].size()).copy_(data_t[1])
-        im_data_tu.resize_(data_t_unl[0].size()).copy_(data_t_unl[0])
+        im_data_s.data.resize_(data_s[0].size()).copy_(data_s[0])
+        gt_labels_s.data.resize_(data_s[1].size()).copy_(data_s[1])
+        im_data_t.data.resize_(data_t[0].size()).copy_(data_t[0])
+        gt_labels_t.data.resize_(data_t[1].size()).copy_(data_t[1])
+        im_data_tu.data.resize_(data_t_unl[0].size()).copy_(data_t_unl[0])
         zero_grad_all()
         data = torch.cat((im_data_s, im_data_t), 0)
         target = torch.cat((gt_labels_s, gt_labels_t), 0)
@@ -191,14 +192,19 @@ def train():
         optimizer_f.step()
         zero_grad_all()
         if not args.method == 'S+T':
+            ## Relative confidence thresholding ##
+            pseudolabels_source = F.softmax(output[:im_data_s.size(0)])
+            row_wise_max, _ = torch.max(pseudolabels_source, -1)
             output = G(im_data_tu)
+            final_sum = torch.mean(row_wise_max, 0)
+            c_tau = args.tau * final_sum
             if args.method == 'ENT':
                 loss_t = entropy(F1, output, args.lamda)
                 loss_t.backward()
                 optimizer_f.step()
                 optimizer_g.step()
             elif args.method == 'MME':
-                loss_t = adentropy(F1, output, args.lamda)
+                loss_t = adentropy(F1, output, args.lamda, c_tau)
                 loss_t.backward()
                 optimizer_f.step()
                 optimizer_g.step()
@@ -271,8 +277,8 @@ def test(loader):
     confusion_matrix = torch.zeros(num_class, num_class)
     with torch.no_grad():
         for batch_idx, data_t in enumerate(loader):
-            im_data_t.resize_(data_t[0].size()).copy_(data_t[0])
-            gt_labels_t.resize_(data_t[1].size()).copy_(data_t[1])
+            im_data_t.data.resize_(data_t[0].size()).copy_(data_t[0])
+            gt_labels_t.data.resize_(data_t[1].size()).copy_(data_t[1])
             feat = G(im_data_t)
             output1 = F1(feat)
             output_all = np.r_[output_all, output1.data.cpu().numpy()]
