@@ -222,7 +222,7 @@ def train():
             momentum_jsd = MomentumJSDLoss(
                 source_distribution, target_distribution, 
                 source_out, target_out_all, m=args.momentum)
-            loss += momentum_jsd
+            loss -= momentum_jsd
 
         loss.backward(retain_graph=True)
         optimizer_g.step()
