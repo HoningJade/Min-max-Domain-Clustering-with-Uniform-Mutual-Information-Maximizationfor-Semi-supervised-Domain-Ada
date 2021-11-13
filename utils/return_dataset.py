@@ -114,10 +114,6 @@ def return_dataset(args):
                                            transform=data_transforms['test'])
     class_list = return_classlist(image_set_file_s)
     print("%d classes in this dataset" % len(class_list))
-    if args.net == 'alexnet':
-        bs = 32
-    else:
-        bs = 24
 
     if args.uniform_sampling:
         source_sampler = return_uniform_sampler(source_dataset.labels)
@@ -128,29 +124,29 @@ def return_dataset(args):
         target_sampler = SubsetRandomSampler(np.arange(len(target_dataset.imgs)))
 
     # sampler is contradict to shuffle, so set shuffle to False
-    source_loader = torch.utils.data.DataLoader(source_dataset, batch_size=bs,
+    source_loader = torch.utils.data.DataLoader(source_dataset, batch_size=args.bs,
                                                 num_workers=3, shuffle=False,
                                                 drop_last=True,
                                                 sampler=source_sampler)
     target_loader = \
         torch.utils.data.DataLoader(target_dataset,
-                                    batch_size=min(bs, len(target_dataset)),
+                                    batch_size=min(args.bs, len(target_dataset)),
                                     num_workers=3, shuffle=False, 
                                     drop_last=True,
                                     sampler=target_sampler)
     target_loader_val = \
         torch.utils.data.DataLoader(target_dataset_val,
-                                    batch_size=min(bs,
+                                    batch_size=min(args.bs,
                                                    len(target_dataset_val)),
                                     num_workers=3,
                                     shuffle=True, drop_last=True)
     target_loader_unl = \
         torch.utils.data.DataLoader(target_dataset_unl,
-                                    batch_size=bs * 2, num_workers=3,
+                                    batch_size=args.bs * 2, num_workers=3,
                                     shuffle=True, drop_last=True)
     target_loader_test = \
         torch.utils.data.DataLoader(target_dataset_test,
-                                    batch_size=bs * 2, num_workers=3,
+                                    batch_size=args.bs * 2, num_workers=3,
                                     shuffle=True, drop_last=True)
     return source_loader, target_loader, target_loader_unl, \
         target_loader_val, target_loader_test, class_list, target_dataset_unl
@@ -180,12 +176,8 @@ def return_dataset_test(args):
                                           test=True)
     class_list = return_classlist(image_set_file_s)
     print("%d classes in this dataset" % len(class_list))
-    if args.net == 'alexnet':
-        bs = 32
-    else:
-        bs = 24
     target_loader_unl = \
         torch.utils.data.DataLoader(target_dataset_unl,
-                                    batch_size=bs * 2, num_workers=3,
+                                    batch_size=args.bs * 2, num_workers=3,
                                     shuffle=False, drop_last=False)
     return target_loader_unl, class_list

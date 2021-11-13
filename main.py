@@ -62,6 +62,8 @@ parser.add_argument('--pseudo_balance_target', action='store_true',
                     help='use pseudo label to sample the unlabeled target')
 parser.add_argument('--momentum', type=int, default=-1,
                     help='momentum for the JSD loss')
+parser.add_argument('--bs', type=int, default=24,
+                    help='batchsize')
 
 args = parser.parse_args()
 print('Dataset %s Source %s Target %s Labeled num perclass %s Network %s' %
@@ -103,11 +105,9 @@ for key, value in dict(G.named_parameters()).items():
 if "resnet" in args.net:
     F1 = Predictor_deep(num_class=len(class_list),
                         inc=inc)
-    bs = 24
 else:
     F1 = Predictor(num_class=len(class_list), inc=inc,
                    temp=args.T)
-    bs = 32
 weights_init(F1)
 lr = args.lr
 G.cuda()
@@ -166,7 +166,7 @@ def train():
         # Sample unlabeled target data wrt pseudolabels
         _, pseudo_sampler = return_pred(G, F1, target_loader_unl_random)
         target_loader_unl = torch.utils.data.DataLoader(target_dataset_unl,
-                                                        batch_size=bs * 2, num_workers=3,
+                                                        batch_size=args.bs * 2, num_workers=3,
                                                         shuffle=False, drop_last=True,
                                                         sampler=pseudo_sampler)
     else:
@@ -195,7 +195,7 @@ def train():
                 _, pseudo_sampler = return_pred(
                     G, F1, target_loader_unl_random)
                 target_loader_unl = torch.utils.data.DataLoader(target_dataset_unl,
-                                                                batch_size=bs * 2, num_workers=3,
+                                                                batch_size=args.bs * 2, num_workers=3,
                                                                 shuffle=False, drop_last=True,
                                                                 sampler=pseudo_sampler)
             # Update the dataloader when it is iterated for once
