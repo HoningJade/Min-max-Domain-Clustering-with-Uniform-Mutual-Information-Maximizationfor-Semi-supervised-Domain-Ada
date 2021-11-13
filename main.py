@@ -11,7 +11,7 @@ from model.basenet import AlexNetBase, VGGBase, Predictor, Predictor_deep
 from utils.utils import weights_init
 from utils.lr_schedule import inv_lr_scheduler
 from utils.return_dataset import return_dataset
-from utils.loss import entropy, adentropy
+from utils.loss import entropy, adentropy, JSDloss
 # Training settings
 parser = argparse.ArgumentParser(description='SSDA Classification')
 parser.add_argument('--steps', type=int, default=50000, metavar='N',
@@ -56,6 +56,10 @@ parser.add_argument('--patience', type=int, default=5, metavar='S',
                          'before terminating. (default: 5 (5000 iterations))')
 parser.add_argument('--early', action='store_false', default=True,
                     help='early stopping on validation or not')
+parser.add_argument('--uniform_sampling', action='store_true',
+                    help='sample labeled data as if it is uniform')
+parser.add_argument('--pseudo_balance_target', action='store_true',
+                    help='use pseudo label to sample the unlabeled target')
 
 args = parser.parse_args()
 print('Dataset %s Source %s Target %s Labeled num perclass %s Network %s' %
@@ -169,7 +173,7 @@ def train():
         if step % len_train_target == 0:
             data_iter_t = iter(target_loader)
         if step % len_train_target_semi == 0:
-            data_iter_t_unl = iter(target_loader_unl)
+            data_iter_t_unl = iter(target_loader_unl) # update the dataset when it is iterated for once
         if step % len_train_source == 0:
             data_iter_s = iter(source_loader)
         data_t = next(data_iter_t)
@@ -184,8 +188,11 @@ def train():
         data = torch.cat((im_data_s, im_data_t), 0)
         target = torch.cat((gt_labels_s, gt_labels_t), 0)
         output = G(data)
-        out1 = F1(output)
-        loss = criterion(out1, target)
+        out1 = F1(output) # first source, then labeled target
+
+        print(data.shape)
+
+        loss = criterion(out1, target) # TODO: Cannot do with MI directly, do with JS
         loss.backward(retain_graph=True)
         optimizer_g.step()
         optimizer_f.step()
