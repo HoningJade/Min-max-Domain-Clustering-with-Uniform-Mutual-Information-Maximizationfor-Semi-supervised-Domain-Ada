@@ -1,3 +1,4 @@
+from torch.autograd.variable import Variable
 import torch.nn.functional as F
 import torch
 import numpy as np
@@ -47,16 +48,16 @@ def JSDloss(p, q, softmax=False):
         p = F.softmax(p, dim=1)
         q = F.softmax(q, dim=1)
 
-    m = (p + q) / 2
+    m = Variable((p + q) / 2)
     jsd = (F.kl_div(p, m) + F.kl_div(q, m))
     return jsd
 
 
 def MomentumJSDLoss(source_distribution, target_distribution, source_out, target_out_all, m=0.99):
-    source_out = F.softmax(source_out)
-    target_out_all = F.softmax(target_out_all)
+    source_out = F.softmax(source_out, dim=1)
+    target_out_all = F.softmax(target_out_all, dim=1)
 
-    new_source_dist = m * source_distribution + (1 - m)*torch.mean(source_out, dim=0)
-    new_target_dist = m * target_distribution + (1 - m)*torch.mean(target_out_all, dim=0)
+    source_distribution = m * source_distribution + (1 - m)*torch.mean(source_out, dim=0)
+    target_distribution = m * target_distribution + (1 - m)*torch.mean(target_out_all, dim=0)
 
-    return JSDloss(new_source_dist[None, :], new_target_dist[None, :])
+    return JSDloss(source_distribution[None, :], target_distribution[None, :])
