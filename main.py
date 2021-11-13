@@ -162,15 +162,7 @@ def train():
     all_step = args.steps
     data_iter_s = iter(source_loader)
     data_iter_t = iter(target_loader)
-    if args.pseudo_balance_target:
-        # Sample unlabeled target data wrt pseudolabels
-        _, pseudo_sampler = return_pred(G, F1, target_loader_unl_random)
-        target_loader_unl = torch.utils.data.DataLoader(target_dataset_unl,
-                                                        batch_size=args.bs * 2, num_workers=3,
-                                                        shuffle=False, drop_last=True,
-                                                        sampler=pseudo_sampler)
-    else:
-        target_loader_unl = target_loader_unl_random
+    target_loader_unl = target_loader_unl_random
     data_iter_t_unl = iter(target_loader_unl)
     len_train_source = len(source_loader)
     len_train_target = len(target_loader)
