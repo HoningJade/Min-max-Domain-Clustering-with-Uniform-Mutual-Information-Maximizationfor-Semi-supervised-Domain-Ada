@@ -41,8 +41,19 @@ def return_uniform_sampler(label_list, num_class=126):
     return sampler
 
 
-def return_pseudo_label(G, F1, ):
-    pass
+def return_pred(G, F1, target_loader_unl_random):
+    G.eval()
+    F1.eval()
+
+    preds = []
+    with torch.no_grad():
+        for img, _ in target_loader_unl_random:
+            img.cuda()
+            out = F1(G(img))
+            preds.append(torch.argmax(out, dim=1).squeeze())
+        preds = torch.cat(preds, dim=0)
+    sampler = return_uniform_sampler(preds)
+    return preds, sampler
 
 
 def return_dataset(args):
@@ -142,7 +153,7 @@ def return_dataset(args):
                                     batch_size=bs * 2, num_workers=3,
                                     shuffle=True, drop_last=True)
     return source_loader, target_loader, target_loader_unl, \
-        target_loader_val, target_loader_test, class_list
+        target_loader_val, target_loader_test, class_list, target_dataset_unl
 
 
 def return_dataset_test(args):
