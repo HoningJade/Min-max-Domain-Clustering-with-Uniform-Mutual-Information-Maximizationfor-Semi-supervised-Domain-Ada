@@ -10,8 +10,8 @@ from model.resnet import resnet34
 from model.basenet import AlexNetBase, VGGBase, Predictor, Predictor_deep
 from utils.utils import weights_init
 from utils.lr_schedule import inv_lr_scheduler
-from utils.return_dataset import return_dataset
-from utils.loss import entropy, adentropy, JSDloss
+from utils.return_dataset import return_dataset, return_pred
+from utils.loss import entropy, adentropy, MomentumJSDLoss
 # Training settings
 parser = argparse.ArgumentParser(description='SSDA Classification')
 parser.add_argument('--steps', type=int, default=50000, metavar='N',
@@ -60,12 +60,14 @@ parser.add_argument('--uniform_sampling', action='store_true',
                     help='sample labeled data as if it is uniform')
 parser.add_argument('--pseudo_balance_target', action='store_true',
                     help='use pseudo label to sample the unlabeled target')
+parser.add_argument('--momentum', type=int, default=-1,
+                    help='momentum for the JSD loss')
 
 args = parser.parse_args()
 print('Dataset %s Source %s Target %s Labeled num perclass %s Network %s' %
       (args.dataset, args.source, args.target, args.num, args.net))
-source_loader, target_loader, target_loader_unl, target_loader_val, \
-    target_loader_test, class_list = return_dataset(args)
+source_loader, target_loader, target_loader_unl_random, target_loader_val, \
+    target_loader_test, class_list, target_dataset_unl = return_dataset(args)
 print(torch.cuda.is_available())
 record_dir = 'record/%s/%s' % (args.dataset, args.method)
 if not os.path.exists(record_dir):
@@ -101,9 +103,11 @@ for key, value in dict(G.named_parameters()).items():
 if "resnet" in args.net:
     F1 = Predictor_deep(num_class=len(class_list),
                         inc=inc)
+    bs = 24
 else:
     F1 = Predictor(num_class=len(class_list), inc=inc,
                    temp=args.T)
+    bs = 32
 weights_init(F1)
 lr = args.lr
 G.cuda()
@@ -158,12 +162,25 @@ def train():
     all_step = args.steps
     data_iter_s = iter(source_loader)
     data_iter_t = iter(target_loader)
+    if args.pseudo_balance_target:
+        # Sample unlabeled target data wrt pseudolabels
+        _, pseudo_sampler = return_pred(G, F1, target_loader_unl_random)
+        target_loader_unl = torch.utils.data.DataLoader(target_dataset_unl,
+                                                        batch_size=bs * 2, num_workers=3,
+                                                        shuffle=False, drop_last=True,
+                                                        sampler=pseudo_sampler)
+    else:
+        target_loader_unl = target_loader_unl_random
     data_iter_t_unl = iter(target_loader_unl)
     len_train_source = len(source_loader)
     len_train_target = len(target_loader)
-    len_train_target_semi = len(target_loader_unl)
+    len_train_target_semi = len(target_loader_unl_random)
     best_acc = 0
     counter = 0
+
+    source_distribution = torch.ones(len(class_list)) / len(class_list)
+    target_distribution = torch.ones(len(class_list)) / len(class_list)
+
     for step in range(all_step):
         optimizer_g = inv_lr_scheduler(param_lr_g, optimizer_g, step,
                                        init_lr=args.lr)
@@ -173,7 +190,16 @@ def train():
         if step % len_train_target == 0:
             data_iter_t = iter(target_loader)
         if step % len_train_target_semi == 0:
-            data_iter_t_unl = iter(target_loader_unl) # update the dataset when it is iterated for once
+            if args.pseudo_balance_target:
+                # Update pseudo label and sampler after a complete iteration
+                _, pseudo_sampler = return_pred(
+                    G, F1, target_loader_unl_random)
+                target_loader_unl = torch.utils.data.DataLoader(target_dataset_unl,
+                                                                batch_size=bs * 2, num_workers=3,
+                                                                shuffle=False, drop_last=True,
+                                                                sampler=pseudo_sampler)
+            # Update the dataloader when it is iterated for once
+            data_iter_t_unl = iter(target_loader_unl)
         if step % len_train_source == 0:
             data_iter_s = iter(source_loader)
         data_t = next(data_iter_t)
@@ -185,19 +211,32 @@ def train():
         gt_labels_t.resize_(data_t[1].size()).copy_(data_t[1])
         im_data_tu.resize_(data_t_unl[0].size()).copy_(data_t_unl[0])
         zero_grad_all()
-        data = torch.cat((im_data_s, im_data_t), 0)
+        data = torch.cat((im_data_s, im_data_t, data_t_unl), 0)
         target = torch.cat((gt_labels_s, gt_labels_t), 0)
         output = G(data)
-        out1 = F1(output) # first source, then labeled target
+        out1 = F1(output)  # first source, then labeled target
+        loss = criterion(labled_out, target)
 
-        print(data.shape)
+        if args.momentum != -1:
+            # Problem: in this setting, size(source) + size(labeled_target) = size(unlabeled_target)
+            # Impossible to maximize JSD sorely between
+            # Solution: JSD based on Momentum JSD between source and target
+            labled_out, unlabeled_out = torch.chunk(out1, chunks=2, dim=0)
+            source_out, target_out = torch.chunk(labled_out, chunks=2, dim=0)
+            target_out_all = torch.cat(target_out, unlabeled_out)
+            momentum_jsd = MomentumJSDLoss(
+                source_distribution, target_distribution, 
+                source_out, target_out_all, m=args.momentum)
+            loss += momentum_jsd
 
-        loss = criterion(out1, target) # TODO: Cannot do with MI directly, do with JS
         loss.backward(retain_graph=True)
         optimizer_g.step()
         optimizer_f.step()
         zero_grad_all()
         if not args.method == 'S+T':
+            # Avoid double count of the BN layers
+            G.eval()
+            F1.eval()
             output = G(im_data_tu)
             if args.method == 'ENT':
                 loss_t = entropy(F1, output, args.lamda)
