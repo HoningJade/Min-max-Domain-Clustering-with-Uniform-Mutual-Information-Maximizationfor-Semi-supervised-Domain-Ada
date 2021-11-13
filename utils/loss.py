@@ -42,10 +42,21 @@ def adentropy(F1, feat, lamda, eta=1.0):
                                               (torch.log(out_t1 + 1e-5)), 1))
     return loss_adent
 
-def JSDloss(p, q):
-    p = F.softmax(p, dim=1)
-    q = F.softmax(q, dim=1)
+def JSDloss(p, q, softmax=False):
+    if softmax:
+        p = F.softmax(p, dim=1)
+        q = F.softmax(q, dim=1)
 
     m = (p + q) / 2
     jsd = (F.kl_div(p, m) + F.kl_div(q, m))
     return jsd
+
+
+def MomentumJSDLoss(source_distribution, target_distribution, source_out, target_out_all, m=0.99):
+    source_out = F.softmax(source_out)
+    target_out_all = F.softmax(target_out_all)
+
+    new_source_dist = m * source_distribution + (1 - m)*torch.mean(source_out, dim=0)
+    new_target_dist = m * target_distribution + (1 - m)*torch.mean(target_out_all, dim=0)
+
+    return JSDloss()
