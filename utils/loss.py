@@ -59,4 +59,4 @@ def MomentumJSDLoss(source_distribution, target_distribution, source_out, target
     new_source_dist = m * source_distribution + (1 - m)*torch.mean(source_out, dim=0)
     new_target_dist = m * target_distribution + (1 - m)*torch.mean(target_out_all, dim=0)
 
-    return JSDloss()
+    return JSDloss(new_source_dist[None, :], new_target_dist[None, :])
