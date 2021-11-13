@@ -211,18 +211,21 @@ def train():
         gt_labels_t.resize_(data_t[1].size()).copy_(data_t[1])
         im_data_tu.resize_(data_t_unl[0].size()).copy_(data_t_unl[0])
         zero_grad_all()
-        data = torch.cat((im_data_s, im_data_t, data_t_unl), 0)
+        data = torch.cat((im_data_s, im_data_t), 0)
         target = torch.cat((gt_labels_s, gt_labels_t), 0)
         output = G(data)
         out1 = F1(output)  # first source, then labeled target
-        loss = criterion(labled_out, target)
+        loss = criterion(out1, target)
 
         if args.momentum != -1:
+            # Avoid double count of the BN layers
+            G.eval()
+            F1.eval()
             # Problem: in this setting, size(source) + size(labeled_target) = size(unlabeled_target)
             # Impossible to maximize JSD sorely between
             # Solution: JSD based on Momentum JSD between source and target
-            labled_out, unlabeled_out = torch.chunk(out1, chunks=2, dim=0)
-            source_out, target_out = torch.chunk(labled_out, chunks=2, dim=0)
+            source_out, target_out = torch.chunk(out1, chunks=2, dim=0)
+            unlabeled_out = F1(G(data_t_unl))
             target_out_all = torch.cat(target_out, unlabeled_out)
             momentum_jsd = MomentumJSDLoss(
                 source_distribution, target_distribution, 
@@ -234,9 +237,6 @@ def train():
         optimizer_f.step()
         zero_grad_all()
         if not args.method == 'S+T':
-            # Avoid double count of the BN layers
-            G.eval()
-            F1.eval()
             output = G(im_data_tu)
             if args.method == 'ENT':
                 loss_t = entropy(F1, output, args.lamda)
