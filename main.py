@@ -11,14 +11,14 @@ from model.basenet import AlexNetBase, VGGBase, Predictor, Predictor_deep
 from utils.utils import weights_init
 from utils.lr_schedule import inv_lr_scheduler
 from utils.return_dataset import return_dataset
-from utils.loss import entropy, adentropy
+from utils.loss import entropy, adentropy, adaac
 # Training settings
 parser = argparse.ArgumentParser(description='SSDA Classification')
 parser.add_argument('--steps', type=int, default=50000, metavar='N',
                     help='maximum number of iterations '
                          'to train (default: 50000)')
 parser.add_argument('--method', type=str, default='MME',
-                    choices=['S+T', 'ENT', 'MME'],
+                    choices=['S+T', 'ENT', 'MME', 'AAC'],
                     help='MME is proposed method, ENT is entropy minimization,'
                          ' S+T is training only on labeled examples')
 parser.add_argument('--lr', type=float, default=0.01, metavar='LR',
@@ -105,6 +105,13 @@ lr = args.lr
 G.cuda()
 F1.cuda()
 
+f_Q = nn.Linear(inc, inc)
+f_K = nn.Linear(inc, inc)
+weights_init(f_Q)
+weights_init(f_K)
+f_Q.cuda()
+f_K.cuda()
+
 im_data_s = torch.FloatTensor(1)
 im_data_t = torch.FloatTensor(1)
 im_data_tu = torch.FloatTensor(1)
@@ -136,9 +143,11 @@ if os.path.exists(args.checkpath) == False:
 def train():
     G.train()
     F1.train()
+    f_Q.train()
+    f_K.train()
     optimizer_g = optim.SGD(params, momentum=0.9,
                             weight_decay=0.0005, nesterov=True)
-    optimizer_f = optim.SGD(list(F1.parameters()), lr=1.0, momentum=0.9,
+    optimizer_f = optim.SGD(list(F1.parameters()) + list(f_Q.parameters()) + list(f_K.parameters()), lr=1.0, momentum=0.9,
                             weight_decay=0.0005, nesterov=True)
 
     def zero_grad_all():
@@ -175,11 +184,11 @@ def train():
         data_t = next(data_iter_t)
         data_t_unl = next(data_iter_t_unl)
         data_s = next(data_iter_s)
-        im_data_s.resize_(data_s[0].size()).copy_(data_s[0])
-        gt_labels_s.resize_(data_s[1].size()).copy_(data_s[1])
-        im_data_t.resize_(data_t[0].size()).copy_(data_t[0])
-        gt_labels_t.resize_(data_t[1].size()).copy_(data_t[1])
-        im_data_tu.resize_(data_t_unl[0].size()).copy_(data_t_unl[0])
+        im_data_s.data.resize_(data_s[0].size()).copy_(data_s[0])
+        gt_labels_s.data.resize_(data_s[1].size()).copy_(data_s[1])
+        im_data_t.data.resize_(data_t[0].size()).copy_(data_t[0])
+        gt_labels_t.data.resize_(data_t[1].size()).copy_(data_t[1])
+        im_data_tu.data.resize_(data_t_unl[0].size()).copy_(data_t_unl[0])
         zero_grad_all()
         data = torch.cat((im_data_s, im_data_t), 0)
         target = torch.cat((gt_labels_s, gt_labels_t), 0)
@@ -202,6 +211,11 @@ def train():
                 loss_t.backward()
                 optimizer_f.step()
                 optimizer_g.step()
+            elif args.method == 'AAC':
+                loss_t = adaac(F1, f_Q, f_K, output, args.lamda)
+                loss_t.backward()
+                optimizer_f.step()
+                optimizer_g.step()
             else:
                 raise ValueError('Method cannot be recognized.')
             log_train = 'S {} T {} Train Ep: {} lr{} \t ' \
@@ -217,6 +231,8 @@ def train():
                        args.method)
         G.zero_grad()
         F1.zero_grad()
+        f_Q.zero_grad()
+        f_K.zero_grad()
         zero_grad_all()
         if step % args.log_interval == 0:
             print(log_train)
@@ -243,6 +259,8 @@ def train():
                                                          acc_val))
             G.train()
             F1.train()
+            f_Q.train()
+            f_K.train()
             if args.save_check:
                 print('saving model')
                 torch.save(G.state_dict(),
@@ -262,6 +280,8 @@ def train():
 def test(loader):
     G.eval()
     F1.eval()
+    f_Q.eval()
+    f_K.eval()
     test_loss = 0
     correct = 0
     size = 0
@@ -271,8 +291,8 @@ def test(loader):
     confusion_matrix = torch.zeros(num_class, num_class)
     with torch.no_grad():
         for batch_idx, data_t in enumerate(loader):
-            im_data_t.resize_(data_t[0].size()).copy_(data_t[0])
-            gt_labels_t.resize_(data_t[1].size()).copy_(data_t[1])
+            im_data_t.data.resize_(data_t[0].size()).copy_(data_t[0])
+            gt_labels_t.data.resize_(data_t[1].size()).copy_(data_t[1])
             feat = G(im_data_t)
             output1 = F1(feat)
             output_all = np.r_[output_all, output1.data.cpu().numpy()]

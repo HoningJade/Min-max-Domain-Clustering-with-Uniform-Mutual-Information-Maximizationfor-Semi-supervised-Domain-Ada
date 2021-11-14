@@ -2,12 +2,10 @@ import torch.nn.functional as F
 import torch
 import numpy as np
 from torch.autograd import Function
-import torch.nn as nn
 
 
-class GradReverse(nn.Module):
+class GradReverse(Function):
     def __init__(self, lambd):
-        super().__init__()
         self.lambd = lambd
 
     def forward(self, x):
@@ -37,7 +35,19 @@ def entropy(F1, feat, lamda, eta=1.0):
 
 def adentropy(F1, feat, lamda, eta=1.0):
     out_t1 = F1(feat, reverse=True, eta=eta)
-    out_t1 = F.softmax(out_t1, dim=-1)  # TODO: double check dim=-1 is correct
+    out_t1 = F.softmax(out_t1)
     loss_adent = lamda * torch.mean(torch.sum(out_t1 *
                                               (torch.log(out_t1 + 1e-5)), 1))
     return loss_adent
+
+def adaac(F1, f_Q, f_K, feat, lamda, feat1=None, eta=1.0):
+    if not feat1:
+        feat1 = feat
+    prob = F.softmax(F1(feat, reverse=True, eta=eta), dim=-1)
+    prob1 = F.softmax(F1(feat1, reverse=True, eta=eta), dim=-1)
+    Q = f_Q(feat)
+    K = f_K(feat)
+    simi = torch.sigmoid(Q.matmul(K.t()) / np.sqrt(Q.shape[1]))
+    P = prob.matmul(prob1.t())
+    loss_adaac = lamda * torch.mean((simi * torch.log(P + 1e-5) + (1 - simi) * torch.log(1 - P + 1e-5)))
+    return loss_adaac
