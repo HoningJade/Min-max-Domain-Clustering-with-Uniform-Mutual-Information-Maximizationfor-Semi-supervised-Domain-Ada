@@ -172,6 +172,10 @@ def train():
 
     source_distribution = torch.ones(len(class_list)) / len(class_list)
     target_distribution = torch.ones(len(class_list)) / len(class_list)
+    source_distribution = source_distribution.cuda()
+    target_distribution = target_distribution.cuda()
+    source_distribution = Variable(source_distribution)
+    target_distribution = Variable(target_distribution)
 
     for step in range(all_step):
         optimizer_g = inv_lr_scheduler(param_lr_g, optimizer_g, step,
@@ -217,9 +221,9 @@ def train():
             # Impossible to maximize JSD sorely between
             # Solution: JSD based on Momentum JSD between source and target
             source_out, target_out = torch.chunk(out1, chunks=2, dim=0)
-            unlabeled_out = F1(G(data_t_unl))
-            target_out_all = torch.cat(target_out, unlabeled_out)
-            momentum_jsd = MomentumJSDLoss(
+            unlabeled_out = F1(G(im_data_tu))
+            target_out_all = torch.cat((target_out, unlabeled_out), dim=0)
+            momentum_jsd, source_distribution, target_distribution = MomentumJSDLoss(
                 source_distribution, target_distribution, 
                 source_out, target_out_all, m=args.momentum)
             loss -= momentum_jsd
