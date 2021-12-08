@@ -57,6 +57,27 @@ def return_pred(G, F1, target_loader_unl_random):
     return preds, sampler
 
 
+def return_src_dist(args):
+    base_path = './data/txt/%s' % args.dataset
+    image_set_file_s = \
+        os.path.join(base_path,
+                     'labeled_source_images_' +
+                     args.source + '.txt')
+    class_cnt = {}
+    with open(image_set_file_s) as f:
+        label_list = []
+        for ind, x in enumerate(f.readlines()):
+            label = int(x.split(' ')[-1])
+            if label not in class_cnt.keys():
+                class_cnt[label] = 0
+            class_cnt[label] += 1
+    src_dist = np.zeros(len(class_cnt))
+    total = sum(list(class_cnt.values()))
+    for k, v in class_cnt.items():
+        src_dist[k] = v / total
+    return src_dist
+
+
 def return_dataset(args):
     base_path = './data/txt/%s' % args.dataset
     root = './data/%s/' % args.dataset

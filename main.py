@@ -10,7 +10,7 @@ from model.resnet import resnet34
 from model.basenet import AlexNetBase, VGGBase, Predictor, Predictor_deep
 from utils.utils import weights_init
 from utils.lr_schedule import inv_lr_scheduler
-from utils.return_dataset import return_dataset, return_pred
+from utils.return_dataset import return_dataset, return_pred, return_src_dist
 from utils.loss import entropy, adentropy, MomentumJSDLoss
 # Training settings
 parser = argparse.ArgumentParser(description='SSDA Classification')
@@ -58,10 +58,14 @@ parser.add_argument('--early', action='store_false', default=True,
                     help='early stopping on validation or not')
 parser.add_argument('--uniform_sampling', action='store_true',
                     help='sample labeled data as if it is uniform')
+parser.add_argument('--use_true_src', action='store_true',
+                    help='sample labeled data as if it is uniform')
 parser.add_argument('--pseudo_balance_target', action='store_true',
                     help='use pseudo label to sample the unlabeled target')
 parser.add_argument('--momentum', type=float, default=-1,
                     help='momentum for the JSD loss')
+parser.add_argument('--smlbd', type=float, default=1.0,
+                    help='weight for the JSD loss')
 parser.add_argument('--bs', type=int, default=24,
                     help='batchsize')
 
@@ -70,6 +74,7 @@ print('Dataset %s Source %s Target %s Labeled num perclass %s Network %s' %
       (args.dataset, args.source, args.target, args.num, args.net))
 source_loader, target_loader, target_loader_unl_random, target_loader_val, \
     target_loader_test, class_list, target_dataset_unl = return_dataset(args)
+source_distribution_true = return_src_dist(args)
 print(torch.cuda.is_available())
 record_dir = 'record/%s/%s' % (args.dataset, args.method)
 if not os.path.exists(record_dir):
@@ -171,6 +176,8 @@ def train():
     counter = 0
 
     source_distribution = np.ones(len(class_list)) / len(class_list)
+    if args.use_true_src:
+        source_distribution = source_distribution_true
     target_distribution = np.ones(len(class_list)) / len(class_list)
 
     for step in range(all_step):
@@ -222,7 +229,9 @@ def train():
             momentum_jsd, source_distribution, target_distribution = MomentumJSDLoss(
                 source_distribution, target_distribution, 
                 source_out, target_out_all, m=args.momentum)
-            loss += momentum_jsd
+            if args.use_true_src:
+                source_distribution = source_distribution_true
+            loss += args.smlbd * momentum_jsd
 
         loss.backward(retain_graph=True)
         optimizer_g.step()
