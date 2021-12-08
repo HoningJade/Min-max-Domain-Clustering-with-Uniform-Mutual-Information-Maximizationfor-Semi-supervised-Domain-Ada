@@ -170,12 +170,8 @@ def train():
     best_acc = 0
     counter = 0
 
-    source_distribution = torch.ones(len(class_list)) / len(class_list)
-    target_distribution = torch.ones(len(class_list)) / len(class_list)
-    source_distribution = source_distribution.cuda()
-    target_distribution = target_distribution.cuda()
-    source_distribution = Variable(source_distribution)
-    target_distribution = Variable(target_distribution)
+    source_distribution = np.ones(len(class_list)) / len(class_list)
+    target_distribution = np.ones(len(class_list)) / len(class_list)
 
     for step in range(all_step):
         optimizer_g = inv_lr_scheduler(param_lr_g, optimizer_g, step,
@@ -226,7 +222,7 @@ def train():
             momentum_jsd, source_distribution, target_distribution = MomentumJSDLoss(
                 source_distribution, target_distribution, 
                 source_out, target_out_all, m=args.momentum)
-            loss -= momentum_jsd
+            loss += momentum_jsd
 
         loss.backward(retain_graph=True)
         optimizer_g.step()

@@ -56,8 +56,10 @@ def JSDloss(p, q, softmax=False):
 def MomentumJSDLoss(source_distribution, target_distribution, source_out, target_out_all, m=0.99):
     source_out = F.softmax(source_out, dim=1)
     target_out_all = F.softmax(target_out_all, dim=1)
+    src_dist = torch.Tensor(source_distribution).cuda()
+    tar_dsit = torch.Tensor(target_distribution).cuda()
 
-    source_distribution = m * source_distribution + (1 - m)*torch.mean(source_out, dim=0)
-    target_distribution = m * target_distribution + (1 - m)*torch.mean(target_out_all, dim=0)
+    src_dist = m * src_dist + (1 - m)*torch.mean(source_out, dim=0)
+    tar_dsit = m * tar_dsit + (1 - m)*torch.mean(target_out_all, dim=0)
 
-    return JSDloss(source_distribution[None, :], target_distribution[None, :]), source_distribution, target_distribution
+    return JSDloss(src_dist[None, :], tar_dsit[None, :]), src_dist.cpu().detach().numpy(), tar_dsit.cpu().detach().numpy()
