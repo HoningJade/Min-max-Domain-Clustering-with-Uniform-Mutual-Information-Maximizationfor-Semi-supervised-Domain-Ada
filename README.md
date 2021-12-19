@@ -8,7 +8,10 @@ Feel free to watch our video for this project https://drive.google.com/file/d/1G
 
 
 
-![Fig1](Fig1.PNG)
+
+
+
+<img src="Fig1.PNG" alt="Fig1" style="zoom:43%;" />
 
 
 
