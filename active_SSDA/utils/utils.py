@@ -10,7 +10,7 @@ def weights_init(m):
         m.weight.data.normal_(0.0, 0.1)
     elif classname.find('Linear') != -1:
         nn.init.xavier_normal_(m.weight)
-        m.bias.data.fill_(0) # nn.init.zeros_(m.bias)
+        m.bias.data.fill_(0)
     elif classname.find('BatchNorm') != -1:
         m.weight.data.normal_(1.0, 0.1)
         m.bias.data.fill_(0)

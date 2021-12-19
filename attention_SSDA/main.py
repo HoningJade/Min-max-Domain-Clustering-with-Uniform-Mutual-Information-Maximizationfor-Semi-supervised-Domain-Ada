@@ -11,14 +11,15 @@ from model.basenet import AlexNetBase, VGGBase, Predictor, Predictor_deep
 from utils.utils import weights_init
 from utils.lr_schedule import inv_lr_scheduler
 from utils.return_dataset import return_dataset
-from utils.loss import entropy, adentropy, adaac
+from utils.loss import entropy, adentropy
+import torch.nn.functional as F
 # Training settings
 parser = argparse.ArgumentParser(description='SSDA Classification')
 parser.add_argument('--steps', type=int, default=50000, metavar='N',
                     help='maximum number of iterations '
                          'to train (default: 50000)')
 parser.add_argument('--method', type=str, default='MME',
-                    choices=['S+T', 'ENT', 'MME', 'AAC'],
+                    choices=['S+T', 'ENT', 'MME'],
                     help='MME is proposed method, ENT is entropy minimization,'
                          ' S+T is training only on labeled examples')
 parser.add_argument('--lr', type=float, default=0.01, metavar='LR',
@@ -55,14 +56,14 @@ parser.add_argument('--patience', type=int, default=5, metavar='S',
                     help='early stopping to wait for improvment '
                          'before terminating. (default: 5 (5000 iterations))')
 parser.add_argument('--early', action='store_false', default=True,
-                    help='early stopping on validation or not')
-
+                    help='early stopping on validation or no')
+parser.add_argument('--tau', type=float, default=0.8, help='confidence threshold')
 args = parser.parse_args()
 print('Dataset %s Source %s Target %s Labeled num perclass %s Network %s' %
       (args.dataset, args.source, args.target, args.num, args.net))
 source_loader, target_loader, target_loader_unl, target_loader_val, \
     target_loader_test, class_list = return_dataset(args)
-print(torch.cuda.is_available())
+use_gpu = torch.cuda.is_available()
 record_dir = 'record/%s/%s' % (args.dataset, args.method)
 if not os.path.exists(record_dir):
     os.makedirs(record_dir)
@@ -105,13 +106,6 @@ lr = args.lr
 G.cuda()
 F1.cuda()
 
-f_Q = nn.Linear(inc, inc)
-f_K = nn.Linear(inc, inc)
-weights_init(f_Q)
-weights_init(f_K)
-f_Q.cuda()
-f_K.cuda()
-
 im_data_s = torch.FloatTensor(1)
 im_data_t = torch.FloatTensor(1)
 im_data_tu = torch.FloatTensor(1)
@@ -143,11 +137,9 @@ if os.path.exists(args.checkpath) == False:
 def train():
     G.train()
     F1.train()
-    f_Q.train()
-    f_K.train()
     optimizer_g = optim.SGD(params, momentum=0.9,
                             weight_decay=0.0005, nesterov=True)
-    optimizer_f = optim.SGD(list(F1.parameters()) + list(f_Q.parameters()) + list(f_K.parameters()), lr=1.0, momentum=0.9,
+    optimizer_f = optim.SGD(list(F1.parameters()), lr=1.0, momentum=0.9,
                             weight_decay=0.0005, nesterov=True)
 
     def zero_grad_all():
@@ -200,19 +192,19 @@ def train():
         optimizer_f.step()
         zero_grad_all()
         if not args.method == 'S+T':
+            ## Relative confidence thresholding ##
+            pseudolabels_source = F.softmax(output[:im_data_s.size(0)])
+            row_wise_max, _ = torch.max(pseudolabels_source, -1)
             output = G(im_data_tu)
+            final_sum = torch.mean(row_wise_max, 0)
+            c_tau = args.tau * final_sum
             if args.method == 'ENT':
                 loss_t = entropy(F1, output, args.lamda)
                 loss_t.backward()
                 optimizer_f.step()
                 optimizer_g.step()
             elif args.method == 'MME':
-                loss_t = adentropy(F1, output, args.lamda)
-                loss_t.backward()
-                optimizer_f.step()
-                optimizer_g.step()
-            elif args.method == 'AAC':
-                loss_t = adaac(F1, f_Q, f_K, output, args.lamda)
+                loss_t = adentropy(F1, output, args.lamda, c_tau)
                 loss_t.backward()
                 optimizer_f.step()
                 optimizer_g.step()
@@ -231,8 +223,6 @@ def train():
                        args.method)
         G.zero_grad()
         F1.zero_grad()
-        f_Q.zero_grad()
-        f_K.zero_grad()
         zero_grad_all()
         if step % args.log_interval == 0:
             print(log_train)
@@ -259,8 +249,6 @@ def train():
                                                          acc_val))
             G.train()
             F1.train()
-            f_Q.train()
-            f_K.train()
             if args.save_check:
                 print('saving model')
                 torch.save(G.state_dict(),
@@ -280,8 +268,6 @@ def train():
 def test(loader):
     G.eval()
     F1.eval()
-    f_Q.eval()
-    f_K.eval()
     test_loss = 0
     correct = 0
     size = 0
