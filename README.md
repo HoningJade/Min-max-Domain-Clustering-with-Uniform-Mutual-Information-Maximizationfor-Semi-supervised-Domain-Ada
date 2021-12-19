@@ -7,11 +7,8 @@ Feel free to find details in our report https://drive.google.com/file/d/1rwxnIiO
 Feel free to watch our video for this project https://drive.google.com/file/d/1GvuzagFYtzl7pGPiATP2Bm3_BxO67hOX/view.
 
 
-
-
-
-
-<img src="Fig1.PNG" alt="Fig1" style="zoom:43%;" />
+Overview figure:
+<img src="Fig1.PNG" alt="Fig1" style="zoom:33%;" />
 
 
 
