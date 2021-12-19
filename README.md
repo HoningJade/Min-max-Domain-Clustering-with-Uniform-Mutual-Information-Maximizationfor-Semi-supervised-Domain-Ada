@@ -8,7 +8,9 @@ Feel free to watch our video for this project https://drive.google.com/file/d/1G
 
 
 
-![Fig1](E:\University\eecs542\Fig1.PNG)
+Overview figure:
+
+<img src="Fig1.PNG" alt="Fig1" style="zoom: 25%;" />
 
 
 
