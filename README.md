@@ -1,6 +1,6 @@
 # Approach Semi-supervised Domain Adaptation from Two Perspective
 
-EECS 542 4-student Group Project.
+EECS 542 4-student Group Project (each team member contributed equally to this project).
 
 Feel free to find details in our report https://drive.google.com/file/d/1rwxnIiOJPfmQAJP7JgYmMBWaVxQofvcG/view.
 
